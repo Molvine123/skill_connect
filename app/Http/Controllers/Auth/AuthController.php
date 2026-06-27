@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Institution;
 use App\Models\Organization;
 use App\Models\Student;
+use App\Models\Employer;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,6 +117,12 @@ class AuthController extends Controller
                 'contact_person' => ['required', 'string', 'max:255'],
                 'description'    => ['required', 'string', 'max:1000'],
             ]);
+        } elseif ($role->name === 'employer') {
+            $request->validate([
+                'company_name' => ['required', 'string', 'max:255'],
+                'industry'     => ['nullable', 'string', 'max:255'],
+                'description'  => ['nullable', 'string', 'max:1000'],
+            ]);
         }
 
         // Determine user status
@@ -172,6 +179,20 @@ class AuthController extends Controller
 
             return redirect()->route('login')
                 ->with('success', 'Your registration has been submitted successfully and is pending approval by the System Administrator.');
+        } elseif ($role->name === 'employer') {
+            Employer::create([
+                'user_id'      => $user->id,
+                'company_name' => $request->company_name ?? $user->name,
+                'industry'     => $request->industry,
+                'phone'        => $request->phone,
+                'description'  => $request->description,
+                'status'       => 'pending',
+            ]);
+
+            AuditLog::log($user->id, 'register_employer_pending', 'Registered pending employer account for ' . $user->name);
+
+            return redirect()->route('login')
+                ->with('success', 'Your employer registration has been submitted and is pending approval by the System Administrator.');
         }
 
         return redirect()->route('login');

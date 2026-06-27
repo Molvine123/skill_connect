@@ -16,6 +16,16 @@ class Student extends Model
         'institution_id',
         'registration_number',
         'phone',
+        'cv_file',
+        'bio',
+        'linkedin_url',
+        'portfolio_url',
+        'location',
+        'open_to_work',
+    ];
+
+    protected $casts = [
+        'open_to_work' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -41,6 +51,16 @@ class Student extends Model
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function jobApplications(): HasMany
+    {
+        return $this->hasMany(JobApplication::class);
+    }
+
+    public function employmentRecords(): HasMany
+    {
+        return $this->hasMany(EmploymentRecord::class);
     }
 
     public function getTotalHoursTrained(): float

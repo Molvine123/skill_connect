@@ -641,4 +641,61 @@ class StudentController extends Controller
 
         return $pdf->download("Certificate_{$certificate->verification_code}.pdf");
     }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // ── Student: Portfolio Management
+    // ═════════════════════════════════════════════════════════════════════════
+
+    public function editPortfolio()
+    {
+        $user    = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')->with('error', 'Student profile not found.');
+        }
+
+        return view('student.portal.portfolio', compact('user', 'student'));
+    }
+
+    public function updatePortfolio(Request $request)
+    {
+        $user    = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')->with('error', 'Student profile not found.');
+        }
+
+        $request->validate([
+            'bio'           => 'nullable|string|max:1000',
+            'linkedin_url'  => 'nullable|url|max:255',
+            'portfolio_url' => 'nullable|url|max:255',
+            'location'      => 'nullable|string|max:255',
+            'open_to_work'  => 'nullable|boolean',
+            'cv_file'       => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+        ]);
+
+        $cvPath = $student->cv_file;
+        if ($request->hasFile('cv_file')) {
+            if ($cvPath) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($cvPath);
+            }
+            $cvPath = $request->file('cv_file')->store('cvs', 'public');
+        }
+
+        $student->update([
+            'bio'           => $request->bio,
+            'linkedin_url'  => $request->linkedin_url,
+            'portfolio_url' => $request->portfolio_url,
+            'location'      => $request->location,
+            'open_to_work'  => $request->boolean('open_to_work'),
+            'cv_file'       => $cvPath,
+        ]);
+
+        AuditLog::log($user->id, 'student_update_portfolio', 'Student updated professional portfolio.');
+
+        return redirect()->route('student.portfolio.edit')->with('success', 'Portfolio updated successfully!');
+    }
 }
+

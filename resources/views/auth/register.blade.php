@@ -24,13 +24,14 @@
         {{-- Role Selection --}}
         <div class="form-group">
             <label class="form-label">I am registering as</label>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.625rem;margin-bottom:0.25rem;" id="roleSelector">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));gap:0.625rem;margin-bottom:0.25rem;" id="roleSelector">
                 @foreach($roles as $role)
                 @php
                     $icons = [
                         'institution'  => ['emoji'=>'🏫','color'=>'#22d3ee'],
                         'organization' => ['emoji'=>'🏢','color'=>'#a78bfa'],
                         'student'      => ['emoji'=>'🎓','color'=>'#34d399'],
+                        'employer'     => ['emoji'=>'💼','color'=>'#0d9488'],
                     ];
                     $ic = $icons[$role->name] ?? ['emoji'=>'👤','color'=>'#818cf8'];
                 @endphp
@@ -91,6 +92,25 @@
                 <div class="form-group">
                     <label for="description" class="form-label">Brief Description of Training Provided</label>
                     <textarea id="description" name="description" class="form-control" rows="3" placeholder="e.g. Offering software engineering bootcamps and digital training courses...">{{ old('description') }}</textarea>
+                    @error('description') <div class="field-error">{{ $message }}</div> @enderror
+                </div>
+            </div>
+
+            {{-- Employer Fields --}}
+            <div id="fields_employer" style="display:none;">
+                <div class="form-group">
+                    <label for="company_name" class="form-label">Company / Employer Name</label>
+                    <input type="text" id="company_name" name="company_name" value="{{ old('company_name') }}" class="form-control" placeholder="e.g. Safaricom PLC">
+                    @error('company_name') <div class="field-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label for="industry" class="form-label">Industry Sector</label>
+                    <input type="text" id="industry" name="industry" value="{{ old('industry') }}" class="form-control" placeholder="e.g. Telecommunications, Finance, Tech">
+                    @error('industry') <div class="field-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label for="employer_description" class="form-label">Brief Description of Company</label>
+                    <textarea id="employer_description" name="description" class="form-control" rows="3" placeholder="e.g. Safe and reliable services..."></textarea>
                     @error('description') <div class="field-error">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -183,6 +203,7 @@ document.querySelectorAll('.role-radio').forEach(radio => {
         document.getElementById('fields_student').style.display = 'none';
         document.getElementById('fields_institution').style.display = 'none';
         document.getElementById('fields_organization').style.display = 'none';
+        document.getElementById('fields_employer').style.display = 'none';
 
         if (roleName === 'student') {
             document.getElementById('fields_student').style.display = 'block';
@@ -190,6 +211,8 @@ document.querySelectorAll('.role-radio').forEach(radio => {
             document.getElementById('fields_institution').style.display = 'block';
         } else if (roleName === 'organization') {
             document.getElementById('fields_organization').style.display = 'block';
+        } else if (roleName === 'employer') {
+            document.getElementById('fields_employer').style.display = 'block';
         }
     });
 });

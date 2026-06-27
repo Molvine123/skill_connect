@@ -10,6 +10,10 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\VirtualClassController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\EmployerController;
+use App\Http\Controllers\JobController;
+use App\Http\Controllers\JobApplicationController;
+use App\Http\Controllers\ChatController;
 
 // ── Public / Auth Routes ───────────────────────────────────────────────────────
 Route::get('/verify/certificate/{code}', [ProgramController::class, 'verifyCertificate'])->name('certificates.verify');
@@ -59,6 +63,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Program Management (admin view)
     Route::get('/programs',                       [ProgramController::class, 'adminIndex'])->name('programs.index');
     Route::get('/programs/{id}',                  [ProgramController::class, 'adminShow'])->name('programs.show');
+
+    // Employer Management (admin view)
+    Route::get('/employers',                      [EmployerController::class, 'adminIndex'])->name('employers.index');
+    Route::get('/employers/{id}',                 [EmployerController::class, 'adminShow'])->name('employers.show');
+    Route::post('/approve/employer/{id}',         [AdminController::class, 'approveEmployer'])->name('approve.employer');
+    Route::post('/reject/employer/{id}',          [AdminController::class, 'rejectEmployer'])->name('reject.employer');
 });
 
 // ── Institution Dashboard ──────────────────────────────────────────────────────
@@ -150,6 +160,17 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     Route::post('/payment/{id}/initiate',           [PaymentController::class, 'initiate'])->name('payment.initiate');
     Route::get('/payment/{id}/pending',             [PaymentController::class, 'pending'])->name('payment.pending');
     Route::get('/payment/{id}/status',              [PaymentController::class, 'status'])->name('payment.status');
+
+    // Job Board
+    Route::get('/jobs',                          [JobController::class, 'browse'])->name('jobs.index');
+    Route::get('/jobs/{id}',                     [JobController::class, 'show'])->name('jobs.show');
+    Route::post('/jobs/{id}/apply',              [JobApplicationController::class, 'apply'])->name('jobs.apply');
+    Route::get('/my-applications',               [JobApplicationController::class, 'myApplications'])->name('applications.index');
+    Route::delete('/applications/{id}/withdraw', [JobApplicationController::class, 'withdraw'])->name('applications.withdraw');
+
+    // Student Portfolio
+    Route::get('/portfolio/edit',   [StudentController::class, 'editPortfolio'])->name('portfolio.edit');
+    Route::post('/portfolio/update',[StudentController::class, 'updatePortfolio'])->name('portfolio.update');
 });
 
 // ── Virtual Classroom Routes ───────────────────────────────────────────────────
@@ -170,4 +191,36 @@ Route::middleware('auth')->prefix('virtual-class')->name('virtual-class.')->grou
 Route::post('/{virtualClass}/attend/leave', [VirtualClassController::class, 'recordLeave'])->name('attend.leave');
     // Attendance report view
     Route::get('/{virtualClass}/attendance-report', [VirtualClassController::class, 'attendanceReport'])->name('attendance.report');
+});
+
+// ── Employer Dashboard ─────────────────────────────────────────────────────────
+Route::middleware(['auth', 'role:employer'])->prefix('employer')->name('employer.')->group(function () {
+    Route::get('/dashboard',        [EmployerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile/edit',     [EmployerController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile/update',  [EmployerController::class, 'updateProfile'])->name('profile.update');
+
+    // Job Management
+    Route::get('/jobs',                      [JobController::class, 'index'])->name('jobs.index');
+    Route::get('/jobs/create',               [JobController::class, 'create'])->name('jobs.create');
+    Route::post('/jobs',                     [JobController::class, 'store'])->name('jobs.store');
+    Route::get('/jobs/{id}/edit',            [JobController::class, 'edit'])->name('jobs.edit');
+    Route::put('/jobs/{id}',                 [JobController::class, 'update'])->name('jobs.update');
+    Route::delete('/jobs/{id}',              [JobController::class, 'destroy'])->name('jobs.destroy');
+    Route::get('/jobs/{id}/applications',    [JobController::class, 'applications'])->name('jobs.applications');
+
+    // Application Management
+    Route::post('/applications/{id}/status',    [JobApplicationController::class, 'updateStatus'])->name('applications.status');
+    Route::post('/applications/{id}/interview', [JobApplicationController::class, 'scheduleInterview'])->name('applications.interview');
+    Route::post('/employment/{id}/status',      [JobApplicationController::class, 'updateEmploymentStatus'])->name('employment.status');
+
+    // Candidate Search & Portfolio
+    Route::get('/search',              [EmployerController::class, 'search'])->name('search');
+    Route::get('/portfolio/{id}',      [EmployerController::class, 'viewPortfolio'])->name('portfolio');
+});
+
+// ── AI Chat Assistant ──────────────────────────────────────────────────────────
+Route::middleware(['auth'])->prefix('chat')->name('chat.')->group(function () {
+    Route::get('/',        [ChatController::class, 'index'])->name('index');
+    Route::post('/send',   [ChatController::class, 'sendMessage'])->middleware('throttle:30,1')->name('send');
+    Route::post('/clear',  [ChatController::class, 'clearSession'])->name('clear');
 });

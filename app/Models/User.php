@@ -56,6 +56,11 @@ class User extends Authenticatable
         return $this->hasOne(Organization::class);
     }
 
+    public function employer()
+    {
+        return $this->hasOne(Employer::class);
+    }
+
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class);
@@ -88,6 +93,11 @@ class User extends Authenticatable
         return $this->hasRole('student');
     }
 
+    public function isEmployer(): bool
+    {
+        return $this->hasRole('employer');
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';
@@ -100,6 +110,7 @@ class User extends Authenticatable
             'institution'  => 'institution.dashboard',
             'organization' => 'organization.dashboard',
             'student'      => 'student.dashboard',
+            'employer'     => 'employer.dashboard',
             default        => 'home',
         };
     }

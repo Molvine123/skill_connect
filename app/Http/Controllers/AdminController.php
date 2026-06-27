@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Institution;
 use App\Models\Organization;
 use App\Models\Student;
+use App\Models\Employer;
 use App\Models\SkillCategory;
 use App\Models\SkillProgram;
 use App\Models\Payment;
@@ -22,12 +23,14 @@ class AdminController extends Controller
             'total_institutions'  => Institution::count(),
             'total_organizations' => Organization::count(),
             'total_students'      => Student::count(),
+            'total_employers'     => Employer::count(),
             'total_programs'      => SkillProgram::count(),
             'system_revenue'      => Payment::where('status', 'paid')->sum('amount'),
         ];
 
-        $pendingInstitutions = Institution::with('user')->where('status', 'pending')->get();
+        $pendingInstitutions  = Institution::with('user')->where('status', 'pending')->get();
         $pendingOrganizations = Organization::with('user')->where('status', 'pending')->get();
+        $pendingEmployers     = Employer::with('user')->where('status', 'pending')->get();
 
         $users = User::with('role')->orderBy('name')->get();
         $categories = SkillCategory::withCount('programs')->orderBy('name')->get();
@@ -48,6 +51,7 @@ class AdminController extends Controller
             'stats',
             'pendingInstitutions',
             'pendingOrganizations',
+            'pendingEmployers',
             'users',
             'categories',
             'auditLogs',
@@ -71,6 +75,24 @@ class AdminController extends Controller
         }
 
         return back()->with('success', ucfirst($type) . ' approved successfully.');
+    }
+
+    public function approveEmployer($id)
+    {
+        $employer = Employer::findOrFail($id);
+        $employer->update(['status' => 'active']);
+        $employer->user->update(['status' => 'active']);
+        AuditLog::log(Auth::id(), 'approve_employer', "Approved employer: {$employer->company_name}");
+        return back()->with('success', "Employer '{$employer->company_name}' approved successfully.");
+    }
+
+    public function rejectEmployer($id)
+    {
+        $employer = Employer::findOrFail($id);
+        $employer->update(['status' => 'rejected']);
+        $employer->user->update(['status' => 'deactivated']);
+        AuditLog::log(Auth::id(), 'reject_employer', "Rejected employer: {$employer->company_name}");
+        return back()->with('success', "Employer '{$employer->company_name}' registration rejected.");
     }
 
     public function reject($type, $id)

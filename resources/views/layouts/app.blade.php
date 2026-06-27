@@ -105,15 +105,44 @@
                     <a href="{{ route('student.programs.index') }}" class="nav-item {{ request()->routeIs('student.programs*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Browse Programs</a>
                     <a href="{{ route('student.enrollments.index') }}" class="nav-item {{ request()->routeIs('student.enrollments*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> My Enrollments</a>
                     <a href="{{ route('student.sessions.index') }}" class="nav-item {{ request()->routeIs('student.sessions*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Upcoming Sessions</a>
+                    
+                    <span class="nav-section-label">Recruitment</span>
+                    <a href="{{ route('student.jobs.index') }}" class="nav-item {{ request()->routeIs('student.jobs*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Job Board</a>
+                    <a href="{{ route('student.applications.index') }}" class="nav-item {{ request()->routeIs('student.applications*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> My Applications</a>
+                    <a href="{{ route('student.portfolio.edit') }}" class="nav-item {{ request()->routeIs('student.portfolio*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2v-5M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit Portfolio</a>
+
                     <span class="nav-section-label">Achievements</span>
                     <a href="{{ route('student.certificates.index') }}" class="nav-item {{ request()->routeIs('student.certificates*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg> My Certificates</a>
                     <a href="{{ route('student.payments.index') }}" class="nav-item {{ request()->routeIs('student.payments*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg> Payments</a>
+
+                @elseif(auth()->user()->isEmployer())
+                    <span class="nav-section-label">Main</span>
+                    <a href="{{ route('employer.dashboard') }}" class="nav-item {{ request()->routeIs('employer.dashboard') ? 'active' : '' }}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        Dashboard
+                    </a>
+                    <span class="nav-section-label">Recruitment</span>
+                    <a href="{{ route('employer.jobs.index') }}" class="nav-item {{ request()->routeIs('employer.jobs*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> My Jobs</a>
+                    <a href="{{ route('employer.search') }}" class="nav-item {{ request()->routeIs('employer.search*') || request()->routeIs('employer.portfolio*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Search Candidates</a>
+                    
+                    <span class="nav-section-label">Settings</span>
+                    <a href="{{ route('employer.profile.edit') }}" class="nav-item {{ request()->routeIs('employer.profile*') ? 'active' : '' }}"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Company Profile</a>
                 @endif
             @endauth
         </nav>
 
         {{-- User Footer --}}
         @auth
+        <div style="padding:0.5rem 1rem;border-top:1px solid var(--sc-dark-border);">
+            <a href="{{ route('chat.index') }}"
+               class="nav-item {{ request()->routeIs('chat*') ? 'active' : '' }}"
+               style="display:flex;align-items:center;gap:.6rem;background:linear-gradient(90deg,rgba(13,148,136,0.08),rgba(124,58,237,0.08));border:1px solid rgba(13,148,136,0.2);border-radius:10px;padding:.6rem .9rem;font-size:.82rem;font-weight:600;color:#0d9488;text-decoration:none;transition:all .2s;"
+               onmouseover="this.style.background='linear-gradient(90deg,rgba(13,148,136,0.15),rgba(124,58,237,0.15))'"
+               onmouseout="this.style.background='linear-gradient(90deg,rgba(13,148,136,0.08),rgba(124,58,237,0.08))'">
+                🤖 <span>AI Assistant</span>
+                <span style="margin-left:auto;font-size:.65rem;background:linear-gradient(90deg,#0d9488,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">BETA</span>
+            </a>
+        </div>
         <div class="sidebar-footer">
             <div class="sidebar-user">
                 <img src="{{ auth()->user()->getAvatarUrl() }}" alt="{{ auth()->user()->name }}" class="sidebar-avatar">

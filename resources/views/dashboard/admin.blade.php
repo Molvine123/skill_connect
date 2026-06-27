@@ -65,8 +65,8 @@
 <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:1px solid var(--sc-dark-border);padding-bottom:0;" id="adminTabs">
     @foreach(['overview'=>'📊 Overview', 'approvals'=>'⏳ Approvals','users'=>'👥 Users','categories'=>'🏷️ Categories','logs'=>'📋 Logs'] as $tab => $label)
     <button onclick="switchTab('{{ $tab }}')" id="tab_{{ $tab }}" class="admin-tab-btn {{ $loop->first ? 'active' : '' }}" style="padding:0.625rem 1.125rem;background:none;border:none;border-bottom:2px solid {{ $loop->first ? 'var(--sc-primary)' : 'transparent' }};color:{{ $loop->first ? 'var(--sc-primary)' : '#6b7280' }};font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap;">{{ $label }}
-        @if($tab === 'approvals' && ($pendingInstitutions->count() + $pendingOrganizations->count()) > 0)
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:var(--sc-danger);color:white;border-radius:50%;font-size:0.65rem;margin-left:4px;">{{ $pendingInstitutions->count() + $pendingOrganizations->count() }}</span>
+        @if($tab === 'approvals' && ($pendingInstitutions->count() + $pendingOrganizations->count() + $pendingEmployers->count()) > 0)
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:var(--sc-danger);color:white;border-radius:50%;font-size:0.65rem;margin-left:4px;">{{ $pendingInstitutions->count() + $pendingOrganizations->count() + $pendingEmployers->count() }}</span>
         @endif
     </button>
     @endforeach
@@ -175,6 +175,52 @@
                     </tr>
                     @empty
                     <tr><td colspan="6" style="text-align:center;color:#4b5563;padding:2rem;">No pending organization registrations. 🎉</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Pending Employers --}}
+    <div class="card" style="margin-top:1.5rem;">
+        <div class="card-header">
+            <span class="card-title">💼 Pending Employers</span>
+            <span style="font-size:0.8125rem;color:#f59e0b;">{{ $pendingEmployers->count() }} awaiting review</span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="sc-table">
+                <thead><tr><th>Company Name</th><th>Reg. Number</th><th>Industry</th><th>Contact</th><th>Submitted</th><th>Actions</th></tr></thead>
+                <tbody>
+                    @forelse($pendingEmployers as $emp)
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:0.75rem;">
+                                <div style="width:38px;height:38px;border-radius:10px;background:rgba(13,148,136,0.15);display:flex;align-items:center;justify-content:center;font-size:1.25rem;">💼</div>
+                                <div>
+                                    <div style="font-weight:600;color:#e2e8f0;">{{ $emp->company_name }}</div>
+                                    <div style="font-size:0.8rem;color:#6b7280;">{{ $emp->user->email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color:#9ca3af;font-family:monospace;">{{ $emp->registration_number ?? '—' }}</td>
+                        <td style="color:#9ca3af;">{{ $emp->industry ?? '—' }}</td>
+                        <td style="color:#9ca3af;">{{ $emp->phone ?? $emp->user->phone ?? '—' }}</td>
+                        <td style="color:#6b7280;font-size:0.8125rem;">{{ $emp->created_at->diffForHumans() }}</td>
+                        <td>
+                            <div style="display:flex;gap:0.5rem;">
+                                <form method="POST" action="{{ route('admin.approve.employer', $emp->id) }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm" style="background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);" onmouseover="this.style.background='rgba(16,185,129,0.3)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">✓ Approve</button>
+                                </form>
+                                <form method="POST" action="{{ route('admin.reject.employer', $emp->id) }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);" onclick="return confirm('Reject this employer?')" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">✗ Reject</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="6" style="text-align:center;color:#4b5563;padding:2rem;">No pending employer registrations. 🎉</td></tr>
                     @endforelse
                 </tbody>
             </table>

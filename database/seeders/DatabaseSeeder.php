@@ -9,6 +9,9 @@ use App\Models\User;
 use App\Models\Institution;
 use App\Models\Organization;
 use App\Models\Student;
+use App\Models\Employer;
+use App\Models\EmployerJob;
+use App\Models\JobApplication;
 use App\Models\SkillCategory;
 use App\Models\SkillProgram;
 use App\Models\TrainingSession;
@@ -28,16 +31,20 @@ class DatabaseSeeder extends Seeder
             ['name' => 'institution',  'display_name' => 'Institution Admin',     'description' => 'Institution-level access'],
             ['name' => 'organization', 'display_name' => 'Organization Admin',    'description' => 'Organization-level access'],
             ['name' => 'student',      'display_name' => 'Student',               'description' => 'Personal account access'],
+            ['name' => 'employer',     'display_name' => 'Employer',              'description' => 'Employer recruitment access'],
         ];
 
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role['name']], $role);
         }
 
+
         $adminRole = Role::where('name', 'admin')->first();
         $instRole  = Role::where('name', 'institution')->first();
         $orgRole   = Role::where('name', 'organization')->first();
         $studRole  = Role::where('name', 'student')->first();
+        $empRole   = Role::where('name', 'employer')->first();
+
 
         // ── 2. Default Admin ─────────────────────────────────────────────────────
         User::firstOrCreate(
@@ -435,6 +442,158 @@ class DatabaseSeeder extends Seeder
         AuditLog::log($uInst1->id, 'register_institution', 'Institution profile registered for Nairobi Technical Institute.');
         AuditLog::log($uOrg1->id, 'register_organization', 'Organization profile registered for TechSkills Kenya Ltd.');
         AuditLog::log($uStud1->id, 'enroll_program', 'Student enrolled in React & Next.js Professional.');
+
+        // ── 13. Employers ─────────────────────────────────────────────────────────
+        // Active Employer 1
+        $uEmp1 = User::firstOrCreate(
+            ['email' => 'employer@skillconnect.co.ke'],
+            [
+                'name'     => 'Safaricom PLC',
+                'password' => Hash::make('Password123'),
+                'role_id'  => $empRole->id,
+                'phone'    => '+254700000010',
+                'status'   => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
+        $emp1 = Employer::firstOrCreate(
+            ['user_id' => $uEmp1->id],
+            [
+                'company_name'        => 'Safaricom PLC',
+                'registration_number' => 'CPR/2002/0001',
+                'industry'            => 'Telecommunications & Technology',
+                'email'               => 'careers@safaricom.co.ke',
+                'phone'               => '+254700000010',
+                'website'             => 'https://www.safaricom.co.ke',
+                'address'             => 'Safaricom House, Waiyaki Way, Nairobi',
+                'description'         => 'Safaricom is a leading mobile network operator and provider of M-Pesa, Africa\'s largest mobile money platform. We are committed to transforming lives through technology.',
+                'status'              => 'active',
+            ]
+        );
+
+        // Active Employer 2
+        $uEmp2 = User::firstOrCreate(
+            ['email' => 'andela@skillconnect.co.ke'],
+            [
+                'name'     => 'Andela Kenya',
+                'password' => Hash::make('Password123'),
+                'role_id'  => $empRole->id,
+                'phone'    => '+254711222333',
+                'status'   => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
+        $emp2 = Employer::firstOrCreate(
+            ['user_id' => $uEmp2->id],
+            [
+                'company_name'        => 'Andela Kenya',
+                'registration_number' => 'CPR/2014/8877',
+                'industry'            => 'Software Engineering & Staffing',
+                'email'               => 'kenya@andela.com',
+                'phone'               => '+254711222333',
+                'website'             => 'https://www.andela.com',
+                'address'             => 'The Hub, Karen, Nairobi',
+                'description'         => 'Andela connects companies with vetted remote software engineers from across Africa. We invest deeply in the potential of African engineers.',
+                'status'              => 'active',
+            ]
+        );
+
+        // Pending Employer
+        $uEmp3 = User::firstOrCreate(
+            ['email' => 'equity.tech@skillconnect.co.ke'],
+            [
+                'name'     => 'Equity Bank Kenya',
+                'password' => Hash::make('Password123'),
+                'role_id'  => $empRole->id,
+                'phone'    => '+254700000011',
+                'status'   => 'pending',
+            ]
+        );
+        Employer::firstOrCreate(
+            ['user_id' => $uEmp3->id],
+            [
+                'company_name'        => 'Equity Bank Kenya',
+                'registration_number' => 'CPR/2004/3399',
+                'industry'            => 'Banking & Financial Services',
+                'description'         => 'Equity Bank is a leading pan-African bank offering banking, insurance, and payment solutions.',
+                'status'              => 'pending',
+            ]
+        );
+
+        // ── 14. Job Vacancies ─────────────────────────────────────────────────────
+        $job1 = EmployerJob::firstOrCreate(
+            ['employer_id' => $emp1->id, 'title' => 'Junior Software Developer'],
+            [
+                'description'             => 'We are looking for a passionate Junior Software Developer to join our Digital Engineering team. You will work on building scalable applications that power M-Pesa and our digital ecosystem.',
+                'type'                    => 'job',
+                'location'                => 'Nairobi, Kenya (Hybrid)',
+                'employment_type'         => 'Full-time',
+                'salary'                  => 'KES 80,000 - 120,000 per month',
+                'requirements'            => 'Proficiency in at least one programming language (Python, Java, or JavaScript). Understanding of REST APIs and database management.',
+                'required_skills'         => 'JavaScript, Python, REST APIs, Git, SQL',
+                'required_qualifications' => 'Diploma or Degree in Computer Science / IT related field',
+                'experience_level'        => 'Entry',
+                'deadline'                => now()->addDays(30)->toDateString(),
+                'status'                  => 'open',
+            ]
+        );
+
+        $job2 = EmployerJob::firstOrCreate(
+            ['employer_id' => $emp1->id, 'title' => 'ICT Internship Program 2026'],
+            [
+                'description'             => 'Join Safaricom\'s 6-month ICT Internship Program and gain hands-on experience in software development, network engineering, cybersecurity, and data science.',
+                'type'                    => 'internship',
+                'location'                => 'Nairobi, Kenya',
+                'duration'                => '6 Months',
+                'requirements'            => 'Currently enrolled in a university or recently graduated within the last 12 months. Strong analytical and problem-solving skills.',
+                'required_skills'         => 'Basic programming, Communication, Analytical thinking',
+                'required_qualifications' => 'Degree in progress or recent graduate',
+                'experience_level'        => 'Entry',
+                'deadline'                => now()->addDays(21)->toDateString(),
+                'status'                  => 'open',
+            ]
+        );
+
+        $job3 = EmployerJob::firstOrCreate(
+            ['employer_id' => $emp2->id, 'title' => 'Full Stack Engineer'],
+            [
+                'description'             => 'Andela is hiring talented Full Stack Engineers to work with our global clients. You will be matched with international companies building innovative products.',
+                'type'                    => 'job',
+                'location'                => 'Remote (Kenya)',
+                'employment_type'         => 'Full-time',
+                'salary'                  => 'USD 2,000 - 5,000 per month',
+                'requirements'            => '3+ years of experience with React/Node.js or similar stack. Strong portfolio of projects.',
+                'required_skills'         => 'React, Node.js, TypeScript, PostgreSQL, Docker',
+                'required_qualifications' => 'Degree or equivalent experience in software development',
+                'experience_level'        => 'Mid',
+                'deadline'                => now()->addDays(45)->toDateString(),
+                'status'                  => 'open',
+            ]
+        );
+
+        // ── 15. Sample Applications ───────────────────────────────────────────────
+        // Jane applies for Safaricom internship
+        $app1 = JobApplication::firstOrCreate(
+            ['employer_job_id' => $job2->id, 'student_id' => $stud1->id],
+            [
+                'cover_letter' => 'I am Jane Wambui, a passionate ICT student from Nairobi Technical Institute. I have completed training in React & Next.js and I am eager to apply my skills in a real-world environment at Safaricom.',
+                'status'       => 'shortlisted',
+                'applied_at'   => now()->subDays(5),
+            ]
+        );
+
+        // David applies for the Full Stack Engineer role
+        $app2 = JobApplication::firstOrCreate(
+            ['employer_job_id' => $job3->id, 'student_id' => $stud2->id],
+            [
+                'cover_letter' => 'I am David Kimani, a software engineering student from Kenya Institute of Software Engineering. I have completed training in Financial Literacy and have strong problem-solving skills. I am ready to contribute to your global engineering team.',
+                'status'       => 'under_review',
+                'applied_at'   => now()->subDays(2),
+            ]
+        );
+
+        AuditLog::log($uEmp1->id, 'register_employer', 'Employer profile registered for Safaricom PLC.');
+        AuditLog::log($uEmp2->id, 'register_employer', 'Employer profile registered for Andela Kenya.');
     }
 }
 
