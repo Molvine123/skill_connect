@@ -88,12 +88,10 @@
             @if(in_array($enr->status, ['pending', 'approved']))
             <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top: 0.75rem; align-items:flex-end;">
                 @if($enr->status === 'pending' && $enr->payment && $enr->payment->status === 'pending')
-                <form method="POST" action="{{ route('student.enrollments.pay', $enr->id) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-primary" style="padding:0.35rem 1rem;font-size:0.8rem;background:#10b981;border-color:#10b981;">
-                        💳 Pay Now
-                    </button>
-                </form>
+                <a href="{{ route('student.payment.checkout', $enr->id) }}"
+                   style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.35rem 1rem;font-size:0.8rem;background:#10b981;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;transition:all 0.2s;">
+                    💳 Pay via M-Pesa
+                </a>
                 @endif
                 <form method="POST" action="{{ route('student.programs.cancel-enrollment', $enr->program_id) }}" onsubmit="return confirm('Are you sure you want to cancel your enrollment?');">
                     @csrf

@@ -495,8 +495,8 @@ class ProgramController extends Controller
         $url = route('student.sessions.attend', $session->id);
         
         $options = new QROptions([
-            'outputType'   => QRCode::OUTPUT_MARKUP_SVG,
-            'eccLevel'     => QRCode::ECC_L,
+            'outputInterface' => \chillerlan\QRCode\Output\QRMarkupSVG::class,
+            'eccLevel'        => \chillerlan\QRCode\Common\EccLevel::L,
         ]);
         $qrCode = (new QRCode($options))->render($url);
 
@@ -525,10 +525,28 @@ class ProgramController extends Controller
 
         $verifyUrl = route('certificates.verify', $certificate->verification_code);
         $options = new QROptions([
-            'outputType'   => QRCode::OUTPUT_MARKUP_SVG,
-            'eccLevel'     => QRCode::ECC_L,
+            'eccLevel'     => \chillerlan\QRCode\Common\EccLevel::L,
+            'addQuietzone' => false,
         ]);
-        $qrCode = (new QRCode($options))->render($verifyUrl);
+        $qrcode = new QRCode($options);
+        $qrcode->addSegment(new \chillerlan\QRCode\Data\Byte($verifyUrl));
+        $matrix = $qrcode->getQRMatrix();
+        $moduleCount = $matrix->moduleCount;
+        
+        $sizePx = 90;
+        $cellSize = $sizePx / $moduleCount;
+        
+        $qrCode = '<table style="border-collapse: collapse; border: none; padding: 0; margin: 0; line-height: 0; width: ' . $sizePx . 'px; height: ' . $sizePx . 'px; table-layout: fixed; background-color: #ffffff;">';
+        for ($y = 0; $y < $moduleCount; $y++) {
+            $qrCode .= '<tr style="height: ' . $cellSize . 'px; padding: 0; margin: 0; line-height: 0;">';
+            for ($x = 0; $x < $moduleCount; $x++) {
+                $isDark = $matrix->isDark($matrix->matrix[$y][$x]);
+                $color = $isDark ? '#000000' : '#ffffff';
+                $qrCode .= '<td style="width: ' . $cellSize . 'px; height: ' . $cellSize . 'px; background-color: ' . $color . '; padding: 0; margin: 0; border: none; line-height: 0; font-size: 0px;"></td>';
+            }
+            $qrCode .= '</tr>';
+        }
+        $qrCode .= '</table>';
 
         $pdf = Pdf::loadView('pdf.certificate', compact('enrollment', 'certificate', 'program', 'qrCode'))
                   ->setPaper('a4', 'landscape');
@@ -546,6 +564,22 @@ class ProgramController extends Controller
             return view('certificate.verify', ['valid' => false, 'code' => $code]);
         }
 
-        return view('certificate.verify', ['valid' => true, 'certificate' => $certificate]);
+        // Generate QR code pointing to this very verification URL
+        $verifyUrl = route('certificates.verify', $certificate->verification_code);
+        $options   = new QROptions([
+            'outputInterface' => \chillerlan\QRCode\Output\QRMarkupSVG::class,
+            'eccLevel'        => \chillerlan\QRCode\Common\EccLevel::H,
+            'svgAddXmlHeader' => false,
+            'svgUseFillAttributes' => true,
+            'outputBase64'    => false,
+        ]);
+        $qrCode = (new QRCode($options))->render($verifyUrl);
+        $qrCode = str_replace('<svg ', '<svg width="88" height="88" ', $qrCode);
+
+        return view('certificate.verify', [
+            'valid'       => true,
+            'certificate' => $certificate,
+            'qrCode'      => $qrCode,
+        ]);
     }
 }

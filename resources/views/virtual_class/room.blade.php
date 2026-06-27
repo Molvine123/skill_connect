@@ -254,7 +254,9 @@ const chatBottom   = document.getElementById('chat-bottom');
 let lastId = 0;
 
 function scrollDown() {
-    if (chatBottom) chatBottom.scrollIntoView({ behavior: 'smooth' });
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 }
 
 function renderMessage(m) {

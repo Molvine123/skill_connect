@@ -61,19 +61,25 @@ class VirtualClassController extends Controller
             ->whereNull('leave_time')
             ->each(function ($att) use ($virtualClass) {
                 $leaveTime = now();
-                $duration  = (int) $att->join_time->diffInMinutes($leaveTime);
-                $sessionDurationMins = $virtualClass->session->start_date
-                    ? (int) $virtualClass->session->start_date->diffInMinutes($virtualClass->session->end_date)
+                $duration = (int) $att->join_time->diffInMinutes($leaveTime);
+                $session = $virtualClass->session;
+                $sessionDurationMins = ($session->start_date && $session->end_date)
+                    ? (int) $session->start_date->diffInMinutes($session->end_date)
                     : 60;
+                $status = $duration >= ($sessionDurationMins * 0.5) ? 'present' : 'absent';
+
                 $att->update([
                     'leave_time' => $leaveTime,
                     'duration'   => $duration,
-                    'status'     => $duration >= ($sessionDurationMins * 0.5) ? 'present' : 'absent',
+                    'status'     => $status,
                 ]);
             });
 
-        return back()->with('success', 'Session closed and attendance finalized.');
+        // Redirect to attendance report view
+        return redirect()->route('virtual-class.attendance.report', $virtualClass->id)
+            ->with('success', 'Session closed and attendance finalized.');
     }
+
 
     // ═══════════════════════════════════════════════════════════════════════
     // ── Shared: Room View
@@ -117,11 +123,15 @@ class VirtualClassController extends Controller
         $student = Auth::user()->student;
         if (!$student) return response()->json(['error' => 'Not a student'], 403);
 
-        // Upsert attendance record
-        ClassAttendance::updateOrCreate(
-            ['virtual_class_id' => $virtualClass->id, 'student_id' => $student->id],
-            ['join_time' => now(), 'leave_time' => null, 'duration' => 0, 'status' => 'absent']
-        );
+        // Create a new attendance record for each join (supports re‑join)
+        ClassAttendance::create([
+            'virtual_class_id' => $virtualClass->id,
+            'student_id'       => $student->id,
+            'join_time'        => now(),
+            'leave_time'       => null,
+            'duration'         => 0,
+            'status'           => 'absent',
+        ]);
 
         return response()->json(['status' => 'joined']);
     }
@@ -134,21 +144,23 @@ class VirtualClassController extends Controller
         $student = Auth::user()->student;
         if (!$student) return response()->json(['error' => 'Not a student'], 403);
 
+        // Find the most recent attendance entry without a leave_time for this student
         $att = ClassAttendance::where('virtual_class_id', $virtualClass->id)
             ->where('student_id', $student->id)
+            ->whereNull('leave_time')
+            ->orderBy('join_time', 'desc')
             ->first();
 
         if ($att) {
-            $leaveTime   = now();
-            $duration    = (int) $att->join_time->diffInMinutes($leaveTime);
+            $leaveTime = now();
+            $duration  = (int) $att->join_time->diffInMinutes($leaveTime);
 
-            // Get session total duration; fallback to 60 min
+            // Determine session total duration (fallback 60 mins)
             $session = $virtualClass->session;
             $sessionDurationMins = ($session->start_date && $session->end_date)
                 ? (int) $session->start_date->diffInMinutes($session->end_date)
                 : 60;
 
-            // Present if attended >= 50% of the session
             $status = $duration >= ($sessionDurationMins * 0.5) ? 'present' : 'absent';
 
             $att->update([
@@ -212,8 +224,19 @@ class VirtualClassController extends Controller
     // ── Materials Upload
     // ═══════════════════════════════════════════════════════════════════════
 
-    public function uploadMaterial(Request $request, VirtualClass $virtualClass)
+    /**
+    * Show attendance report after closing a virtual class.
+    */
+    public function attendanceReport(VirtualClass $virtualClass)
     {
+        $attendance = ClassAttendance::where('virtual_class_id', $virtualClass->id)
+            ->with(['student.user'])
+            ->orderBy('join_time', 'asc')
+            ->get();
+
+        return view('virtual_class.attendance_report', compact('virtualClass', 'attendance'));
+    }
+    public function uploadMaterial(Request $request, VirtualClass $virtualClass) {
         $request->validate([
             'title' => 'required|string|max:255',
             'file'  => 'required|file|mimes:pdf,ppt,pptx,doc,docx,xls,xlsx,mp4,png,jpg|max:51200',

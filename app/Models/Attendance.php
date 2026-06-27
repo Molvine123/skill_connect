@@ -18,6 +18,7 @@ class Attendance extends Model
         'status',
         'verification_method',
         'marked_at',
+        'present',
     ];
 
     protected $casts = [

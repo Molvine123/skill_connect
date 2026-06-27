@@ -80,10 +80,10 @@
             @foreach([
                 ['➕','Create Program','Publish a new training program', route('organization.programs.create')],
                 ['📋','My Programs','View and manage your programs', route('organization.programs.index')],
-                ['📅','Schedule Session','Manage your training sessions', route('organization.programs.index')],
-                ['👥','Manage Enrollments','Review student enrollments', route('organization.programs.index')],
-                ['✅','Record Attendance','Mark session attendance', route('organization.programs.index')],
-                ['🏆','Issue Certificates','Generate completion certificates', route('organization.programs.index')],
+                ['📅','Schedule Session','Manage your training sessions', route('organization.sessions.index')],
+                ['👥','Manage Enrollments','Review student enrollments', route('organization.enrollments.index')],
+                ['✅','Record Attendance','Mark session attendance', route('organization.attendance')],
+                ['🏆','Issue Certificates','Generate completion certificates', route('organization.certificates.index')],
                 ['⚙️','Edit Profile','Update your organization profile', route('organization.profile.edit')],
                 ['🌐','Browse Platform Programs','Discover & enroll students', route('organization.programs.browse')],
             ] as [$icon, $title, $desc, $link])

@@ -76,11 +76,29 @@
                     </td>
                     <td style="padding:1rem 1.25rem;text-align:right;">
                         @if($enrollment->certificate)
-                            <span style="font-size:0.8rem;color:#10b981;font-weight:600;">✓ Issued</span>
+                            <div style="display:inline-flex;align-items:center;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
+                                <span style="font-size:0.75rem;color:#34d399;font-weight:700;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);padding:0.2rem 0.55rem;border-radius:6px;">✓ Issued</span>
+                                <a href="{{ route('organization.programs.certificates.download', [$program->id, $enrollment->id]) }}"
+                                   style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.65rem;font-size:0.73rem;font-weight:600;color:#f59e0b;background:rgba(245,158,11,0.09);border:1px solid rgba(245,158,11,0.25);border-radius:7px;text-decoration:none;transition:all 0.15s;"
+                                   onmouseover="this.style.background='rgba(245,158,11,0.2)'" onmouseout="this.style.background='rgba(245,158,11,0.09)'">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    PDF
+                                </a>
+                                <a href="{{ route('certificates.verify', $enrollment->certificate->verification_code) }}" target="_blank"
+                                   style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.65rem;font-size:0.73rem;font-weight:600;color:#94a3b8;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:7px;text-decoration:none;transition:all 0.15s;"
+                                   onmouseover="this.style.background='rgba(255,255,255,0.08)';this.style.color='#f1f5f9'" onmouseout="this.style.background='rgba(255,255,255,0.03)';this.style.color='#94a3b8'">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    Verify
+                                </a>
+                            </div>
                         @else
                             <form method="POST" action="{{ route('organization.programs.certificates.issue', [$program->id, $enrollment->id]) }}" style="display:inline;">
                                 @csrf
-                                <button type="submit" class="btn btn-outline" style="padding:0.35rem 0.75rem;font-size:0.75rem;border-color:rgba(167,139,250,0.3);color:#a78bfa;">Issue Certificate</button>
+                                <button type="submit"
+                                        style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.35rem 0.8rem;font-size:0.75rem;font-weight:700;cursor:pointer;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.3);color:#a78bfa;border-radius:8px;transition:all 0.15s;"
+                                        onmouseover="this.style.background='rgba(167,139,250,0.22)'" onmouseout="this.style.background='rgba(167,139,250,0.1)'">
+                                    🏆 Issue Certificate
+                                </button>
                             </form>
                         @endif
                     </td>

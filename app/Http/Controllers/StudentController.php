@@ -411,16 +411,19 @@ class StudentController extends Controller
 
             AuditLog::log(Auth::id(), 'student_enroll_program', "Student enrolled in program: {$program->name} (Enrollment Status: {$status})");
 
-            $msg = $isFree 
-                ? 'Enrolled successfully! Since this is a free course, your enrollment is automatically approved.' 
-                : 'Enrollment requested! Please complete your payment to active your registration.';
-
             if (!$user->isStudent()) {
                 $msg = "Successfully enrolled student {$student->user->name} in program {$program->name}.";
                 return back()->with('success', $msg);
             }
 
-            return redirect()->route('student.enrollments.index')->with('success', $msg);
+            if ($isFree) {
+                return redirect()->route('student.enrollments.index')
+                    ->with('success', 'Enrolled successfully! Since this is a free course, your enrollment is automatically approved.');
+            }
+
+            // Redirect to M-Pesa checkout for paid programs
+            return redirect()->route('student.payment.checkout', $enrollment->id)
+                ->with('info', 'Please complete your M-Pesa payment to activate your enrollment.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'An error occurred during enrollment: ' . $e->getMessage());
@@ -605,9 +608,37 @@ class StudentController extends Controller
             $q->where('student_id', $student->id);
         })->findOrFail($id);
 
-        return redirect()->route('programs.certificates.download', [
-            'programId' => $certificate->enrollment->program_id,
-            'enrollmentId' => $certificate->enrollment->id
+        $enrollment = $certificate->enrollment;
+        $program = $enrollment->program;
+
+        $verifyUrl = route('certificates.verify', $certificate->verification_code);
+        $options = new \chillerlan\QRCode\QROptions([
+            'eccLevel'     => \chillerlan\QRCode\Common\EccLevel::L,
+            'addQuietzone' => false,
         ]);
+        $qrcode = new \chillerlan\QRCode\QRCode($options);
+        $qrcode->addSegment(new \chillerlan\QRCode\Data\Byte($verifyUrl));
+        $matrix = $qrcode->getQRMatrix();
+        $moduleCount = $matrix->moduleCount;
+        
+        $sizePx = 90;
+        $cellSize = $sizePx / $moduleCount;
+        
+        $qrCode = '<table style="border-collapse: collapse; border: none; padding: 0; margin: 0; line-height: 0; width: ' . $sizePx . 'px; height: ' . $sizePx . 'px; table-layout: fixed; background-color: #ffffff;">';
+        for ($y = 0; $y < $moduleCount; $y++) {
+            $qrCode .= '<tr style="height: ' . $cellSize . 'px; padding: 0; margin: 0; line-height: 0;">';
+            for ($x = 0; $x < $moduleCount; $x++) {
+                $isDark = $matrix->isDark($matrix->matrix[$y][$x]);
+                $color = $isDark ? '#000000' : '#ffffff';
+                $qrCode .= '<td style="width: ' . $cellSize . 'px; height: ' . $cellSize . 'px; background-color: ' . $color . '; padding: 0; margin: 0; border: none; line-height: 0; font-size: 0px;"></td>';
+            }
+            $qrCode .= '</tr>';
+        }
+        $qrCode .= '</table>';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.certificate', compact('enrollment', 'certificate', 'program', 'qrCode'))
+                  ->setPaper('a4', 'landscape');
+
+        return $pdf->download("Certificate_{$certificate->verification_code}.pdf");
     }
 }

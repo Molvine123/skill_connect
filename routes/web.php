@@ -9,6 +9,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\VirtualClassController;
+use App\Http\Controllers\PaymentController;
 
 // ── Public / Auth Routes ───────────────────────────────────────────────────────
 Route::get('/verify/certificate/{code}', [ProgramController::class, 'verifyCertificate'])->name('certificates.verify');
@@ -96,12 +97,16 @@ Route::middleware(['auth', 'role:organization'])->prefix('organization')->name('
     Route::get('/programs/{id}/edit',              [ProgramController::class, 'edit'])->name('programs.edit');
     Route::put('/programs/{id}',                   [ProgramController::class, 'update'])->name('programs.update');
     Route::delete('/programs/{id}',                [ProgramController::class, 'destroy'])->name('programs.destroy');
+// Organization-wide Quick Action routes
+    Route::get('/sessions', function(){ return redirect()->route('organization.dashboard'); })->name('sessions.index');
+    Route::get('/enrollments', function(){ return redirect()->route('organization.dashboard'); })->name('enrollments.index');
+    Route::get('/certificates', [OrganizationController::class, 'certificatesIndex'])->name('certificates.index');
 
     // Session Management
     Route::get('/programs/{id}/sessions',          [ProgramController::class, 'sessions'])->name('programs.sessions');
     Route::post('/programs/{id}/sessions',         [ProgramController::class, 'storeSession'])->name('programs.sessions.store');
     Route::delete('/programs/{programId}/sessions/{sessionId}', [ProgramController::class, 'destroySession'])->name('programs.sessions.destroy');
-
+// removed placeholder - moved into organization group
     // Enrollment Management
     Route::get('/programs/{id}/enrollments',                              [ProgramController::class, 'enrollments'])->name('programs.enrollments');
     Route::post('/programs/{programId}/enrollments/{enrollmentId}/approve', [ProgramController::class, 'approveEnrollment'])->name('programs.enrollments.approve');
@@ -109,6 +114,7 @@ Route::middleware(['auth', 'role:organization'])->prefix('organization')->name('
     Route::post('/programs/{programId}/enrollments/{enrollmentId}/complete', [ProgramController::class, 'completeEnrollment'])->name('programs.enrollments.complete');
 
     // Attendance Tracking
+    Route::get('/attendance', [OrganizationController::class, 'attendanceIndex'])->name('attendance');
     Route::get('/programs/{programId}/sessions/{sessionId}/attendance',  [ProgramController::class, 'attendance'])->name('programs.attendance');
     Route::post('/programs/{programId}/sessions/{sessionId}/attendance', [ProgramController::class, 'saveAttendance'])->name('programs.attendance.save');
     Route::get('/programs/{programId}/sessions/{sessionId}/qr',          [ProgramController::class, 'showSessionQr'])->name('programs.sessions.qr');
@@ -139,8 +145,11 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     Route::post('/sessions/{id}/attend', [StudentController::class, 'markAttendanceViaQr'])->name('sessions.attend');
     Route::get('/certificates',     [StudentController::class, 'myCertificates'])->name('certificates.index');
     Route::get('/certificates/{id}/download', [StudentController::class, 'downloadCertificate'])->name('certificates.download');
-    Route::get('/payments',         [StudentController::class, 'myPayments'])->name('payments.index');
-    Route::post('/enrollments/{id}/pay', [StudentController::class, 'payForEnrollment'])->name('enrollments.pay');
+    Route::get('/payments',                       [StudentController::class, 'myPayments'])->name('payments.index');
+    Route::get('/payment/{id}/checkout',            [PaymentController::class, 'show'])->name('payment.checkout');
+    Route::post('/payment/{id}/initiate',           [PaymentController::class, 'initiate'])->name('payment.initiate');
+    Route::get('/payment/{id}/pending',             [PaymentController::class, 'pending'])->name('payment.pending');
+    Route::get('/payment/{id}/status',              [PaymentController::class, 'status'])->name('payment.status');
 });
 
 // ── Virtual Classroom Routes ───────────────────────────────────────────────────
@@ -158,5 +167,7 @@ Route::middleware('auth')->prefix('virtual-class')->name('virtual-class.')->grou
     Route::post('/{virtualClass}/chat',         [VirtualClassController::class, 'sendMessage'])->name('chat.send');
     Route::get('/{virtualClass}/chat',          [VirtualClassController::class, 'getMessages'])->name('chat.get');
     Route::post('/{virtualClass}/attend/join',  [VirtualClassController::class, 'recordJoin'])->name('attend.join');
-    Route::post('/{virtualClass}/attend/leave', [VirtualClassController::class, 'recordLeave'])->name('attend.leave');
+Route::post('/{virtualClass}/attend/leave', [VirtualClassController::class, 'recordLeave'])->name('attend.leave');
+    // Attendance report view
+    Route::get('/{virtualClass}/attendance-report', [VirtualClassController::class, 'attendanceReport'])->name('attendance.report');
 });

@@ -17,6 +17,10 @@ class Payment extends Model
         'payment_method',
         'transaction_reference',
         'status',
+        'checkout_request_id',
+        'merchant_request_id',
+        'mpesa_receipt_number',
+        'phone_number',
     ];
 
     public function enrollment(): BelongsTo
@@ -27,5 +31,19 @@ class Payment extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    /**
+     * Get the human-readable status label.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'paid'    => 'Paid',
+            'pending' => 'Pending',
+            'failed'  => 'Failed',
+            'refunded'=> 'Refunded',
+            default   => ucfirst($this->status),
+        };
     }
 }

@@ -10,6 +10,8 @@ use App\Models\SkillProgram;
 use App\Models\Enrollment;
 use App\Models\Payment;
 use App\Models\AuditLog;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 
 class OrganizationController extends Controller
 {
@@ -172,4 +174,90 @@ class OrganizationController extends Controller
 
         return redirect()->route('organization.dashboard')->with('success', 'Organization profile updated successfully.');
     }
+    // Show attendance for a specific session
+    public function attendance($programId, $sessionId)
+    {
+        $session = \App\Models\TrainingSession::with('virtualClass')
+            ->findOrFail($sessionId);
+
+        $virtualClass = $session->virtualClass;
+
+        $attendance = \App\Models\ClassAttendance::where('virtual_class_id', $virtualClass->id)
+            ->with(['student.user'])
+            ->orderBy('join_time', 'asc')
+            ->get();
+
+        return view('organization.attendance', compact('session', 'virtualClass', 'attendance'));
+    }
+
+    // Show organization-wide attendance records for all sessions
+    public function attendanceIndex()
+    {
+        $user = Auth::user();
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return redirect()->route('organization.dashboard')->with('error', 'Organization profile not found.');
+        }
+
+        $programIds = $organization->programs()->pluck('id');
+
+        // Fetch sessions with their programs, virtual class, and both types of attendance
+        $sessions = \App\Models\TrainingSession::whereIn('program_id', $programIds)
+            ->with([
+                'program',
+                'attendances.student.user',
+                'virtualClass.attendances.student.user'
+            ])
+            ->orderBy('start_date', 'desc')
+            ->paginate(15);
+
+        return view('organization.attendance_index', compact('sessions', 'organization'));
+    }
+
+    // Show organization-wide certificates index
+    public function certificatesIndex()
+    {
+        $user = Auth::user();
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return redirect()->route('organization.dashboard')->with('error', 'Organization profile not found.');
+        }
+
+        // Get all programs for this organization with completed enrollments count
+        $programs = $organization->programs()
+            ->withCount(['enrollments' => function($q) {
+                $q->where('status', 'completed');
+            }])
+            ->get();
+
+        // Load all issued certificates for the organization's programs
+        $programIds = $programs->pluck('id');
+        $recentCertificates = \App\Models\Certificate::whereIn('enrollment_id', function($q) use ($programIds) {
+                $q->select('id')->from('enrollments')->whereIn('program_id', $programIds);
+            })
+            ->with(['student.user', 'enrollment.program'])
+            ->orderBy('issue_date', 'desc')
+            ->paginate(15);
+
+        // Build a QR code map: verification_code => SVG string
+        $qrOptions = new QROptions([
+            'outputInterface' => \chillerlan\QRCode\Output\QRMarkupSVG::class,
+            'eccLevel'        => \chillerlan\QRCode\Common\EccLevel::H,
+            'svgAddXmlHeader' => false,
+            'svgUseFillAttributes' => true,
+            'outputBase64'    => false,
+        ]);
+        $qrCodes = [];
+        foreach ($recentCertificates as $cert) {
+            $url = route('certificates.verify', $cert->verification_code);
+            $svg = (new QRCode($qrOptions))->render($url);
+            $qrCodes[$cert->verification_code] = str_replace('<svg ', '<svg width="60" height="60" ', $svg);
+        }
+
+        return view('organization.certificates_index', compact('programs', 'recentCertificates', 'organization', 'qrCodes'));
+    }
 }
+
+
