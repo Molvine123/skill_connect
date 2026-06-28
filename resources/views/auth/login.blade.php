@@ -94,31 +94,11 @@
         <a href="{{ route('register') }}" style="color:var(--sc-primary);font-weight:600;text-decoration:none;margin-left:0.25rem;">Create account</a>
     </p>
 
-    {{-- Demo credentials --}}
-    <div style="margin-top:2rem;padding:1rem;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;">
-        <p style="font-size:0.75rem;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;">🔑 Demo Accounts</p>
-        <div style="display:grid;gap:0.375rem;">
-            @foreach([
-                ['Admin',        'admin@skillconnect.co.ke'],
-                ['Institution',  'institution@skillconnect.co.ke'],
-                ['Organization', 'org@skillconnect.co.ke'],
-                ['Student',      'student@skillconnect.co.ke'],
-            ] as [$label, $email])
-            <div onclick="fillDemo('{{ $email }}')" style="display:flex;justify-content:space-between;align-items:center;padding:0.375rem 0.625rem;border-radius:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
-                <span style="font-size:0.8125rem;color:#9ca3af;">{{ $label }}</span>
-                <span style="font-size:0.75rem;color:#6b7280;font-family:monospace;">{{ $email }}</span>
-            </div>
-            @endforeach
-        </div>
-        <p style="font-size:0.75rem;color:#4b5563;margin-top:0.625rem;">All passwords: <code style="color:#818cf8;background:rgba(99,102,241,0.1);padding:1px 5px;border-radius:4px;">Password123</code></p>
-    </div>
+
 </div>
 
 <script>
-function fillDemo(email) {
-    document.getElementById('email').value = email;
-    document.getElementById('password').value = 'Password123';
-}
+
 
 document.getElementById('loginForm').addEventListener('submit', function() {
     const btn = document.getElementById('loginBtn');
